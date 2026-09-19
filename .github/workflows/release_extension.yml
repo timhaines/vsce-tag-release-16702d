@@ -1,0 +1,40 @@
+# Replica of Shopify/ruby-lsp .github/workflows/release_extension.yml (blob 3cd564a6d2dc112ab49f769f659a9bbdc798631c).
+# Parity table: ../../README.md. Trimmed to the release_extension job; the release_github job
+# and the CHANGELOG github-script step are release plumbing and hold no publishing credential.
+# No environment: key. That absence is the finding, not a fixture simplification.
+name: Release VS Code extension
+
+on:
+  push:
+    tags:
+      - vscode-fixture-v[0-9]+.[0-9]+.[0-9]+
+
+jobs:
+  release_extension:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        name: Checkout
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        name: Use Node.js
+        with:
+          node-version: "22.21"
+
+      # Upstream runs `pnpm run package` and `vsce publish` in one step, so VSCE_PAT is in the
+      # environment of a build script read out of the tag's own tree. Upstream lines 60-67.
+      - name: Publish extension in the marketplace
+        working-directory: ./vscode
+        run: |
+          npm run package
+          echo "vsce publish would run here"
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+      # Upstream interpolates the Open VSX token directly into the run: body. Upstream lines 80-85.
+      - name: Publish extension on OpenVSX
+        working-directory: ./vscode
+        run: |
+          npm run package
+          echo "ovsx publish would run here with -p ${{ secrets.OPENVSX_TOKEN }}"

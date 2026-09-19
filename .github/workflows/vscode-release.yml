@@ -1,0 +1,29 @@
+# Replica of Shopify/theme-tools .github/workflows/vscode-release.yml (blob ea5f1819f3fd8993a99aa8cbde04069902ed1aa7).
+# Bare workflow_dispatch: no inputs, no branch filter, no environment:.
+# This arm exists to settle the one leg no Shopify run record proves: that a dispatched run
+# executes the dispatched ref's copy of the file.
+name: VS Code Release Workflow in a pinch
+
+on: workflow_dispatch
+
+permissions:
+  contents: read
+
+jobs:
+  publish-packages:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+
+      - name: VS Code Marketplace publish
+        working-directory: ./vscode
+        run: npm run publish:vsce
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
